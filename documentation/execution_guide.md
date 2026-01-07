@@ -56,3 +56,40 @@ streamlit run app.py --server.port 8501
 - **Permission Denied**: Ensure you are using a virtual environment or have the necessary permissions to install packages.
 - **Port Already in Use**: If port 8000 or 8501 is busy, you can specify different ports using the `--port` flag for both `uvicorn` and `streamlit`.
 - **Model Weights Missing**: If `model/deepfake_model.pth` is not found, the app will run with an uninitialized model for demonstration purposes. Ensure you have trained the model or provided the weights.
+
+## 6. Running Both Services Simultaneously (Linux/macOS)
+
+For convenience, a shell script `run_all.sh` has been provided to launch both the FastAPI backend and the Streamlit UI with a single command.
+
+1.  **Navigate to the project directory**:
+    ```bash
+    cd audio-deepfake-detection
+    ```
+
+2.  **Make the script executable** (if not already):
+    ```bash
+    chmod +x run_all.sh
+    ```
+
+3.  **Run the script**:
+    ```bash
+    ./run_all.sh
+    ```
+
+This script will activate the virtual environment, start both services in the background, and display their access URLs. Press `Ctrl+C` to stop both services gracefully.
+
+## 7. Running Both Services Simultaneously (Windows)
+
+For Windows users, a batch script `run_all.bat` is available to launch both services.
+
+1.  **Navigate to the project directory**:
+    ```cmd
+    cd audio-deepfake-detection
+    ```
+
+2.  **Run the script**:
+    ```cmd
+    run_all.bat
+    ```
+
+This script will activate the virtual environment and launch the FastAPI backend in a minimized window, and the Streamlit UI in the current command prompt. Close the command prompt or press `Ctrl+C` to stop the Streamlit UI, and manually close the FastAPI window if it doesn't close automatically.
