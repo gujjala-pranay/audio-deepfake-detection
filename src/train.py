@@ -4,9 +4,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from model import DeepfakeDetectorCNN
 import sys
+import os
+import argparse
 sys.path.append('..')
 from utils import AudioDataset
-import time
 
 def train_model(train_loader, val_loader, model, epochs=10, lr=0.001, device='cuda'):
     model.to(device)
@@ -14,6 +15,9 @@ def train_model(train_loader, val_loader, model, epochs=10, lr=0.001, device='cu
     optimizer = optim.Adam(model.parameters(), lr=lr)
     
     best_val_acc = 0.0
+    
+    if not os.path.exists('../model'):
+        os.makedirs('../model')
     
     for epoch in range(epochs):
         model.train()
@@ -67,13 +71,32 @@ def evaluate_model(loader, model, criterion, device):
     return 100. * correct / total, running_loss / len(loader)
 
 if __name__ == "__main__":
-    # Example usage (placeholders for paths)
-    # train_dataset = AudioDataset('path/to/train_protocol.txt', 'path/to/audio_dir')
-    # train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    # val_dataset = AudioDataset('path/to/val_protocol.txt', 'path/to/audio_dir')
-    # val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    parser = argparse.ArgumentParser(description="Train Audio Deepfake Detector")
+    parser.add_argument("--train_protocol", type=str, help="Path to training protocol file")
+    parser.add_argument("--train_dir", type=str, help="Path to training audio directory")
+    parser.add_argument("--val_protocol", type=str, help="Path to validation protocol file")
+    parser.add_argument("--val_dir", type=str, help="Path to validation audio directory")
+    parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs")
+    parser.add_argument("--batch_size", type=int, default=32, help="Batch size for training")
+    parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
+    parser.add_argument("--limit", type=int, default=None, help="Limit the number of samples (None for full dataset)")
     
-    # model = DeepfakeDetectorCNN()
-    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # train_model(train_loader, val_loader, model, device=device)
-    pass
+    args = parser.parse_args()
+    
+    if args.train_protocol and args.train_dir:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print(f"Using device: {device}")
+        
+        train_dataset = AudioDataset(args.train_protocol, args.train_dir, limit=args.limit)
+        train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+        
+        val_loader = None
+        if args.val_protocol and args.val_dir:
+            val_dataset = AudioDataset(args.val_protocol, args.val_dir, limit=args.limit)
+            val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+        
+        model = DeepfakeDetectorCNN()
+        train_model(train_loader, val_loader, model, epochs=args.epochs, lr=args.lr, device=device)
+    else:
+        print("Please provide --train_protocol and --train_dir to start training.")
+        parser.print_help()
